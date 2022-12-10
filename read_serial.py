@@ -27,7 +27,7 @@ def parse_sample(buf):
 def get_sample(l):
     S.reset_input_buffer()
     b = S.read(256*5*3)
-    sample_end = time_ns()
+    sample_end = time()
     try:
         s = Sample(b, sample_end)
         print(s.data.shape)
