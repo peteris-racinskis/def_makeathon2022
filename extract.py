@@ -3,7 +3,7 @@ from os.path import exists
 from os import listdir
 import pandas as pd
 
-BAG_DIR="bagfiles/"
+BAG_DIR="bagfiles_clockfix/"
 OUTPUT_DIR="extracted/"
 POSE_TOPIC="/mocap_node/drone/pose"
 

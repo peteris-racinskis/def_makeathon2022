@@ -14,8 +14,8 @@ if __name__ == "__main__":
 
     for feature in features:
         ts = feature[0] # removed the conversion from nanoseconds
-        label_index = labels.index.get_loc(ts, method="nearest")
-        selected_labels.append(labels.iloc[label_index:label_index+1].values)
+        label_index = abs(labels["Time"].values - ts).argmin()
+        selected_labels.append(labels.iloc[label_index:label_index+1].values.reshape(-1))
     
     droppable = np.where(features.sum(axis=0) != 0)
 

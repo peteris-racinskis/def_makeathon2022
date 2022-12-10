@@ -4,7 +4,7 @@ import numpy as np
 from os.path import exists
 
 
-OUTPUT_FILE = f"audio_samples_periodic_hf/unified_freqdomain_{time()}.csv"
+OUTPUT_FILE = f"audio_samples/freqdomain_{time()}.csv"
 S = Serial("/dev/ttyUSB0", baudrate=115200, timeout=3)
 
 class Sample():
@@ -31,6 +31,7 @@ def get_sample(l):
     try:
         s = Sample(b, sample_end)
         print(s.data.shape)
+        # print(s.data[:10])
         l.append(s)
     except:
         print("bit alignment fucked")
@@ -40,7 +41,7 @@ def get_sample(l):
 if __name__ == "__main__":
     samples = []
     print("SOUND RECORDING START")
-    while len(samples) < 500:
+    while len(samples) < 1000:
         get_sample(samples)
         if not len(samples) == 0 and len(samples) % 10 == 0:
             print(f"processed {len(samples)} samples")

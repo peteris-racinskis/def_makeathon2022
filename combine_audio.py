@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from os import listdir
 
-SAMPLE_DIR="audio_samples_periodic_hf/"
+SAMPLE_DIR="audio_samples/"
 OUTPUT_NAME="extracted/extracted_audio.npy"
 
 if __name__ == "__main__":
