@@ -45,10 +45,10 @@ if __name__ == "__main__":
         get_sample(samples)
         if not len(samples) == 0 and len(samples) % 10 == 0:
             print(f"processed {len(samples)} samples")
-        if not len(samples) == 0 and len(samples) % 50 == 0:
-            fname = f"{OUTPUT_FILE}"
+        if not len(samples) == 0 and len(samples) % 200 == 0:
+            fname = f"audio_samples/freqdomain_{time()}.csv"
             print("saving file...")
-            with open(fname, 'a') as f:
+            with open(fname, 'w') as f:
                 for s in samples:
                     f.write(s.serialize())
 

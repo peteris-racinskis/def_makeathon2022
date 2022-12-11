@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import csv
 
-F="audio_samples_periodic_hf/unified_freqdomain_1670690467.0895236.csv"
+F="audio_samples/freqdomain_1670715985.49783.csv"
 datas = []
 with open(F) as f:
     r = csv.reader(f)
