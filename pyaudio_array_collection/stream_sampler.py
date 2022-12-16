@@ -12,7 +12,7 @@ CHANNELS=1
 FORMAT=pyaudio.paInt16
 RATE=44100
 CHUNK=4096
-RECORD_SECS = 10
+RECORD_SECS = 20
 TOTAL_LEN = ceil( RATE / CHUNK ) * CHUNK * RECORD_SECS * 2 # for uint16 we have 2 bytes per value
 SLICES_PER_SECOND = 100
 TOTAL_SLICES = int( SLICES_PER_SECOND * RECORD_SECS )
@@ -108,7 +108,7 @@ class StreamSampler():
         axs[0][1].plot(np.arange(slen), positions[:,0])
         axs[1][1].plot(np.arange(slen), positions[:,1])
         axs[2][1].plot(np.arange(slen), positions[:,2])
-        
+
         fig.show()
 
 
