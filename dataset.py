@@ -3,10 +3,16 @@ from torch import tensor, dot, stack, norm, concat
 
 class AudioPositionDataset():
 
-    def __init__(self, audio="extracted/trimmed_audio.npy", position="extracted/trimmed_position.npy", slice=slice(None)):
-        features = np.load(audio).astype(np.float32)
-        labels = np.load(position).astype(np.float32)
+    def __init__(self, audio="extracted/trimmed_audio.npy", position="extracted/trimmed_position.npy", slice=slice(None), seed=333):
+        features = np.load(audio).astype(np.float32)[::-1]
+        labels = np.load(position).astype(np.float32)[::-1]
         assert(len(features) == len(labels))
+        fw = features.shape[-1]
+        comb = np.concatenate([features, labels], axis=-1)
+        np.random.seed(seed)
+        np.random.shuffle(comb)
+        features = comb[:,:fw]
+        labels = comb[:,fw:]
         self.features = features[slice]
         self.labels = labels[slice]
 
@@ -16,6 +22,8 @@ class AudioPositionDataset():
     
     def __getitem__(self, idx):
         features = tensor(self.features[idx][1:-1]).reshape(-1,4).transpose(1,0)
+        label = tensor([1.] if self.labels[idx][1] >= 0. else [0.])
+        return features, concat([label,1-label])
         coords = tensor(self.labels[idx][1:])
         cosines = stack(
             [
