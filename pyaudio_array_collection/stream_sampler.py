@@ -2,7 +2,7 @@ import numpy as np
 import pyaudio
 import matplotlib.pyplot as plt
 
-from time import sleep
+from time import sleep, time
 from math import floor, ceil
 
 from pose_subscriber import PoseSubscriber
@@ -11,13 +11,14 @@ from utils import get_usb_sound_cards, add_buffer, visual_normalization as vnorm
 CHANNELS=1
 FORMAT=pyaudio.paInt16
 RATE=44100
+WINDOWS_PER_SECOND=4 # width of the sample window for each slice (how many samples get FFT'd)
 CHUNK=4096
-RECORD_SECS = 20
+RECORD_SECS = 1
 TOTAL_LEN = ceil( RATE / CHUNK ) * CHUNK * RECORD_SECS * 2 # for uint16 we have 2 bytes per value
-SLICES_PER_SECOND = 100
+SLICES_PER_SECOND = 180
 TOTAL_SLICES = int( SLICES_PER_SECOND * RECORD_SECS )
 SLICE_OFFSET = int( RATE / SLICES_PER_SECOND )
-DISTANCE_THRESH = 0.5
+DISTANCE_THRESH = 1.0
 
 class StreamSampler():
 
@@ -29,6 +30,22 @@ class StreamSampler():
         self.slice_rate = 10
         self.samples = []
     
+    def collect_and_save(self, num_samples=100, filename=f"stream_samples/<item>_{time()}.npy"):
+
+        while len(self.samples) < num_samples:
+            self.sample_once()
+
+        sname = filename.replace("<item>", "sample")
+        pname = filename.replace("<item>", "positions")
+        print(f"Saving samples to file: {sname}")
+        print(f"Saving positions to file: {pname}")
+
+        combined_audio = np.stack([sample for sample,_ in self.samples])
+        combined_pos = np.stack([pos for _,pos in self.samples])
+
+        np.save(sname, combined_audio)
+        np.save(pname, combined_pos)
+        
     def sample_once(self):
         
         streams, buffers = list(zip(*[self.create_stream(idx) for idx in self.idxs]))
@@ -43,7 +60,8 @@ class StreamSampler():
         
         pose_arr = np.stack(poses)
         moved = np.linalg.norm(pose_arr[0] - pose_arr[-1])
-        pos_samples = pose_arr[ floor( SLICES_PER_SECOND / 2 ) : TOTAL_SLICES - ceil( SLICES_PER_SECOND / 2 ) ]
+        pos_samples = poses[ floor( SLICES_PER_SECOND / ( 2 * WINDOWS_PER_SECOND ) ) :
+         TOTAL_SLICES - ceil( SLICES_PER_SECOND / ( 2 * WINDOWS_PER_SECOND ) ) ]
 
         valid = moved < DISTANCE_THRESH        
         if valid:
@@ -64,13 +82,13 @@ class StreamSampler():
     @staticmethod
     def process_sample(buf):
 
-        ar = np.frombuffer(buf, dtype=np.int16).reshape(-1, int( TOTAL_LEN / 2 ) )
+        ar = np.frombuffer(buf, dtype=np.int16).reshape( int( TOTAL_LEN / 2 ) )
         list_slice_arrays = []
 
-        for i in range(TOTAL_SLICES - SLICES_PER_SECOND - 1):
+        for i in range(TOTAL_SLICES - ceil( SLICES_PER_SECOND / WINDOWS_PER_SECOND ) ):
             start = i * SLICE_OFFSET
-            stop = start + RATE
-            list_slice_arrays.append(ar[:,start:stop])
+            stop = start + floor( RATE / WINDOWS_PER_SECOND ) 
+            list_slice_arrays.append(ar[start:stop])
         
         slice_array = np.stack(list_slice_arrays)
         return np.abs(np.fft.rfft(slice_array, axis=-1))
@@ -98,12 +116,15 @@ class StreamSampler():
         return (None, cont)    
 
     def visualize_sample(self, idx):
+
         samples, positions = self.samples[idx]
         slen = len(positions)
+
         fig, axs = plt.subplots(3,2)
-        axs[0][0].matshow(vnorm(samples[0])[:,:2000])
-        axs[1][0].matshow(vnorm(samples[1])[:,:2000])
-        axs[2][0].matshow(vnorm(samples[2])[:,:2000])
+
+        axs[0][0].matshow(vnorm(samples[0]))
+        axs[1][0].matshow(vnorm(samples[1]))
+        axs[2][0].matshow(vnorm(samples[2]))
 
         axs[0][1].plot(np.arange(slen), positions[:,0])
         axs[1][1].plot(np.arange(slen), positions[:,1])
@@ -112,12 +133,8 @@ class StreamSampler():
         fig.show()
 
 
-
 if __name__ == "__main__":
     ss = StreamSampler()
-    ss.sample_once()
-    # ss.sample_once()
-    # ss.sample_once()
-    # ss.sample_once()
+    ss.collect_and_save(10)
     ss.visualize_sample(0)
     print()
