@@ -13,7 +13,7 @@ from time import sleep
 # TOTAL_LEN = int( RATE / CHUNK ) * CHUNK * RECORD_SECS * 2 # for uint16 we have 2 bytes per value
 
 def visual_normalization(fft_result):
-    return np.log(20 * fft_result.squeeze()[:,10:2000])
+    return np.log(20 * fft_result.squeeze()[:,10:])
     # return np.log(20 * fft_result.squeeze()[:,10:])
 
 def add_buffer(cb, buffer):
